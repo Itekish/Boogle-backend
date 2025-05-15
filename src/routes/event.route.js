@@ -4,16 +4,6 @@ const { protectRoute, authorizeRoles } = require("../middleware/auth");
 const uploadImage = require('../middleware/uploadImage')
 const router = express.Router();
 
-// Public Routes
-// router.route("/")
-//   .get(eventController.getAllEvents)
-//   .post(
-//     protectRoute,
-//     authorizeRoles("organizer", "admin"),
-//     require("../controllers/event.controller").EventImageUpload, // <- multer memory storage
-//     eventController.createEvent
-//   );
-
 router
   .route("/")
   .get(eventController.getAllEvents)

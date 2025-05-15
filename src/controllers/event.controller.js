@@ -89,49 +89,6 @@ const getEventById = async (req, res) => {
   }
 };
 
-// Create event
-// const createEvent = async (req, res) => {
-//   try {
-//     const { title, description, category, location, date, isPublished, tickets, organizer } = req.body;
-
-//     if (!title || !description || !category || !location || !date || !organizer) {
-//       return res.status(400).json({ error: "All fields except image are required." });
-//     }
-
-//     let imageUrl = req.body.image || null;
-//     if (req.file) {
-//       const file = dataUri(req).content;
-//       const result = await uploader.upload(file, { folder: "eventImages" });
-//       imageUrl = result.secure_url;
-//     }
-//     if (!imageUrl) {
-//       return res.status(400).json({ error: "Image is required." });
-//     }
-
-//     // const parsedTickets = tickets ? JSON.parse(tickets) : [];
-//     const parsedTickets = tickets || [];
-
-
-//     const event = new Event({
-//       title,
-//       description,
-//       category,
-//       location,
-//       date: new Date(date),
-//       isPublished: isPublished === "true",
-//       tickets: parsedTickets,
-//       organizer,
-//       image : imageUrl //schema expects 'image'
-//     });
-
-//     await event.save();
-//     res.status(201).json({ message: "Event created successfully!", event });
-//   } catch (error) {
-//     console.error("Error creating event:", error);
-//     res.status(500).json({ error: "Server error" });
-//   }
-// };
-
 const createEvent = async (req, res) => {
   try {
     const {
@@ -219,17 +176,23 @@ const updateEvent = async (req, res) => {
 const deleteEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
-    if (!event) return res.status(404).json({ error: "Event not found" });
 
-    if (req.user.role !== "admin" && event.organizer.toString() !== req.user.id) {
-      return res.status(403).json({ error: "Access denied: You can only delete your own events" });
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
     }
 
-    await event.deleteOne();
+    // Check if the user is the organizer
+    if (event.organizer.toString() !== req.user.id) {
+      return res.status(403).json({ error: "You are not authorized to delete this event" });
+    }
+
+    // Delete the event
+    await Event.findByIdAndDelete(req.params.id);
+
     res.status(200).json({ message: "Event deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting event:", error);
-    res.status(500).json({ error: "Internal server error" });
+  } catch (err) {
+    console.error("Error deleting event:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 

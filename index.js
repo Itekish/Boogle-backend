@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const userRoute = require("./src/routes/user.route");
 const eventRoute = require("./src/routes/event.route");
+const dashboardRoute = require("./src/routes/dashboard.route")
 const cors = require("cors");
 
 const app = express();
@@ -12,6 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/events", eventRoute);
+app.use("/api/v1/dashboard", dashboardRoute);
 
 app.get("/", (req, res) => {
   res.send("Hello Boogle!");
