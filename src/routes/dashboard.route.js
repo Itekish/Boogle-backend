@@ -5,7 +5,7 @@ const { getDashboardStats } = require("../controllers/dashboard.controller");
 
 const router = express.Router();
 
-// Route for dashboard stats (protected route)
+// Route for dashboard stats
 router.get("/", protectRoute, getDashboardStats);
 
 module.exports = router;

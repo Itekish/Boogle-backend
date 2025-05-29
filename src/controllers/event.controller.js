@@ -5,6 +5,7 @@ const DataUri = require("datauri/parser");
 const { uploader, } = require("../utils/cloudinary");
 const AppError = require("../utils/appError"); //a custom AppError handler
 const cloudinary   = require("../utils/cloudinary");
+const { normalizeAttendees } = require("../utils/attendeeUtils");
 // Multer memory storage
 const storage = multer.memoryStorage();
 
@@ -223,26 +224,41 @@ const registerAttendee = async (req, res) => {
 const purchaseTicket = async (req, res) => {
   try {
     const { eventId, ticketType } = req.params;
-    const { userId } = req.body;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized: no user" });
+    }
 
     const event = await Event.findById(eventId);
-    if (!event) return res.status(404).json({ error: "Event not found" });
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
 
-    const ticket = event.tickets.find((t) => t.type === ticketType);
+    // Normalize any old attendees entries
+    event.attendees = normalizeAttendees(event.attendees);
+
+    const ticket = event.tickets.find(t => t.type === ticketType);
     if (!ticket || ticket.quantity <= 0) {
-      return res.status(400).json({ error: "Ticket type not available or sold out" });
+      return res.status(400).json({ error: "Ticket not available or sold out" });
+    }
+
+    // Prevent double purchase
+    if (event.attendees.some(a => a.user === userId)) {
+      return res.status(400).json({ error: "Already purchased" });
     }
 
     ticket.quantity -= 1;
-    event.attendees.push(userId);
-    await event.save();
+    ticket.sold     = (ticket.sold || 0) + 1;
+    event.attendees.push({ user: userId, ticketType });
 
+    await event.save();
     res.status(200).json({ message: "Ticket purchased successfully", event });
-  } catch (error) {
-    console.error("Error purchasing ticket:", error);
+  } catch (err) {
+    console.error("Error purchasing ticket:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 module.exports = {
   getAllEvents,

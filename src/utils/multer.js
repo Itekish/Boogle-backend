@@ -4,7 +4,7 @@ const DataUri = require('datauri/parser');
 
 const storage = multer.memoryStorage();
 
-const imageUploads = multer({
+const uploadImage  = multer({
     storage: storage,
     limits: {
         fileSize: 3 * 1024 * 1024 // 3MB
@@ -26,4 +26,4 @@ const dUri = new DataUri();
 const dataUri = (req) => 
     dUri.format(path.extname(req.file.originalname).toString(), req.file.buffer);
 
-module.exports = { dataUri, imageUploads}
+module.exports = { dataUri, uploadImage }

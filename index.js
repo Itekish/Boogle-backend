@@ -19,6 +19,10 @@ app.get("/", (req, res) => {
   res.send("Hello Boogle!");
 });
 
+app.get("/api/hello", (req, res) => {
+  res.json({ message: "Hello from Vercel!" });
+});
+
 const start = async () => {
   try {
     const res = await mongoose.connect(process.env.MONGO_URL);
